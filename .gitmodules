@@ -1,3 +1,6 @@
 [submodule "api-gateway"]
 	path = api-gateway
 	url = git@github.com:rgalicia0729/api-gateway.git
+[submodule "products-service"]
+	path = products-service
+	url = git@github.com:rgalicia0729/products-service.git
