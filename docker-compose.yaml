@@ -1,0 +1,50 @@
+version: "3"
+
+services:
+  # Postgres database
+  postgres-db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - /Users/rgalicia/Postgres/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  # Nats server
+  nats-server:
+    image: nats:latest
+    ports:
+      - "8222:8222"
+  # Api gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "${API_GATEWAY_PORT}:3000"
+    volumes:
+      - ./api-gateway/src:/usr/src/app/src
+    command: yarn start:dev
+    environment:
+      - PORT=3000
+      - INJECTION_TOKEN=INJECTION_TOKEN
+      - NATS_SERVERS=nats://nats-server:4222
+  # Products service
+  products-service:
+    build: ./products-service
+    volumes:
+      - ./products-service/src:/usr/src/app/src
+    command: yarn start:dev
+    environment:
+      - NATS_SERVERS=nats://nats-server:4222
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-db:5432/microservices?schema=e_products
+  # Orders service
+  orders-service:
+    build: ./orders-service
+    volumes:
+      - ./orders-service/src:/usr/src/app/src
+    command: yarn start:dev
+    environment:
+      - INJECTION_TOKEN=INJECTION_TOKEN
+      - NATS_SERVERS=nats://nats-server:4222
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-db:5432/microservices?schema=e_orders
